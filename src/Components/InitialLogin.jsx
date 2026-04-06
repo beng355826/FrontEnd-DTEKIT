@@ -1,75 +1,143 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { detectUser, authoriseUser } from "../Api";
+import { handleSubmit } from "../Functions/handleSubmit";
+import { handleOtp } from "../Functions/handleOtp";
+import { setTimeOutSync } from "../Functions/setTimeOutSync";
 import MotionWrapper from "./Animation/MotionWrapper";
 import TermsPopUp from "./Popup/PopUp";
+import { Mail } from "./Mail";
 
-const initialLogin = () => {
+const InitialLogin = () => {
   const [agree, setAgree] = useState(false);
   const [openTerms, setOpenTerms] = useState(false);
-
   const [rememberMe, setRememberMe] = useState(false);
-
-  const [initialEmail, setInitialEmail] = useState(null);
-  const [otp, setOtp] = useState(null);
-  const [password, setPassword] = useState(null);
-
-  const [step, setStepPage] = useState("request");
   const [isLoading, setIsLoading] = useState(false);
+  const [incorrectEmailFormat, setIncorrectEmailFormat] = useState(null);
+  const [incorrectPasswordFormat, setIncorrectPasswordFormat] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
+  const [userPassword, setUserPassword] = useState(null);
+  const [userReconfirmPassword, setUserReconfirmPassword] = useState(null);
+  const [passwordDiff, setPasswordDiff] = useState(false);
+  const [emailAlreadyCreated, setEmailAlreadyCreated] = useState(false);
+  const [otp, setOtp] = useState(0);
+  const [otpCorrect, setOtpCorrect] = useState(true)
+  const [step, setStepPage] = useState("request");
 
-  const navigate = useNavigate()
+  const [mode, setMode] = useState("signIn")
 
-  // The below function handles the first instance of the email being provided, if the email is correct flips to the otp section and passes the OTP to state so it can be recognised
+  // const setTimeOutSync = async (ms) => {
+  //   return new Promise((resolve) => setTimeout(resolve, ms));
+  // }; // this is to transform the setTimeout function into synchronous operation
 
-  async function handleInitial(email) {
-    const result = await detectUser(email);
-    if (typeof result === "object") {
-      setTimeout(() => setStepPage("otp"), 300); //this is for the transition
+  const navigate = useNavigate();
+
+  const formData = {
+    userEmail,
+    userPassword,
+    userReconfirmPassword,
+    rememberMe,
+    setIncorrectEmailFormat,
+    setIncorrectPasswordFormat,
+    setEmailAlreadyCreated,
+    setPasswordDiff,
+    setIsLoading,
+    setTimeOutSync,
+    setStepPage,
+    localStorage,
+    passwordDiff,
+    otp,
+    setOtpCorrect,
+    navigate
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem("otpSent") === "true") {
+      setStepPage("otp")
     }
-  }
+  }, []);
 
-  async function handleOtp(passedOtp) {
-    const setTimeOutSync = (ms) => {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    }; // this is to transform the setTimeout function into synchronous operation
-
-    if (passedOtp.toString().length === 8) {
-      setIsLoading(true);
-      setOtp(passedOtp);
-      await setTimeOutSync(1000); //we create the impression that the OTP is being checked against the DB here with a timeout.
-      setStepPage("password");
-      setIsLoading(false);
-    }
-  }
-
-  async function handlePassword(otp, password, rememberMe) {
-    console.log(rememberMe, typeof rememberMe);
-    const result = await authoriseUser(parseInt(otp), password, rememberMe);
-   if(result.status === 201){
-    navigate('/home')
-   }
-    
-
-  }
+  useEffect(() => {
+    handleOtp(formData);
+  }, [formData.otp]);
 
   return (
     <div key={step}>
       {/* key={} unmounts the component so when state changes it removes whats been typed */}
-      <div>
-        <h1>Take me back to the Klump</h1>
-      </div>
+            <Mail/>
+      <div className="sign-in-box">
+
+      
 
       {step === "request" ? (
         <div>
+            <div>
+            <button onClick={() => setStepPage("request")}>Sign Up</button>
+            </div>
+          
           <input
+            className={
+              incorrectEmailFormat || emailAlreadyCreated ? "formatVal" : ""
+            }
             type="email"
+            id="email"
             name="email"
             placeholder="Email"
             onChange={(e) => {
-              setInitialEmail(e.target.value);
+              setUserEmail(e.target.value);
             }}
           />
           <br />
+          <br />
+          <div>
+            <input
+              className={
+                incorrectPasswordFormat || passwordDiff ? "formatVal" : ""
+              }
+              type="password"
+              placeholder="password"
+              autoComplete="off"
+              onChange={(e) => {
+                setUserPassword(e.target.value);
+              }}
+            />
+            <br />
+            <input
+              className={
+                incorrectPasswordFormat || passwordDiff ? "formatVal" : ""
+              }
+              type="password"
+              placeholder="re-confirm password"
+              autoComplete="off"
+              onChange={(e) => {
+                setUserReconfirmPassword(e.target.value);
+              }}
+            />
+            <p>
+              {incorrectEmailFormat ? "Please input a valid email address" : ""}
+            </p>
+            <p>
+              {incorrectPasswordFormat
+                ? "Please input a password with at least 6 characters, a capital letter and 1 special character"
+                : ""}
+            </p>
+            <p>
+              {passwordDiff
+                ? "Please ensure you enter the same password in both fields"
+                : ""}
+            </p>
+            <p>
+              {emailAlreadyCreated
+                ? "This email address has already been registered"
+                : ""}
+            </p>
+            <br></br>
+            <span>Remember Me?</span>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+          </div>
           <span>
             I agree to the
             <a
@@ -91,56 +159,43 @@ const initialLogin = () => {
             onChange={(e) => setAgree(e.target.checked)}
           />
           <br />
-          <p>{agree ? "✅ Agreed" : "❌ Not agreed"}</p>
-          <button onClick={() => handleInitial(initialEmail)} disabled={!agree}>
+          <p>
+            {agree
+              ? "✅ Agreed to the terms"
+              : "❌ Please agree to the terms before signing up"}
+          </p>
+          <button
+            onClick={() => {
+              handleSubmit(formData);
+            }}
+            disabled={!agree}
+          >
             Request log in
           </button>
-          <br/>
-          <Link to="/returningUser">
-            Returning user?
-          </Link>
+
+          <br />
+          <Link to="/returningUser">Returning user?</Link>
         </div>
       ) : step === "otp" ? (
         <MotionWrapper>
           <div>
             <input
+              className={otpCorrect ? "" : "formatVal"}
               id="otp"
               type="text"
               maxLength="8"
-              onChange={(e) => handleOtp(e.target.value)}
+              onChange={(e) => setOtp(e.target.value)}
             />
             <h1>Enter OTP</h1>
-          </div>
-        </MotionWrapper>
-      ) : step === "password" ? (
-        <MotionWrapper>
-          <div>
-            <input
-              type="password"
-              placeholder="password"
-              autoComplete="off"
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-            />
-            <br></br>
-            <span>Remember Me?</span>
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <h1>Enter Provided Password</h1>
-            <button onClick={(e) => handlePassword(otp, password, rememberMe)}>
-              log in
-            </button>
+            <p>{otpCorrect ? "" : "Your One time passcode is incorrect"}</p>
           </div>
         </MotionWrapper>
       ) : null}
-
       {isLoading === true ? <div className="loader"></div> : null}
+    </div>
+
     </div>
   );
 };
 
-export default initialLogin;
+export default InitialLogin;

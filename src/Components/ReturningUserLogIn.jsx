@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { detectUser, authoriseUser } from "../Api";
+import { createUser, authoriseUser } from "../Api";
 import MotionWrapper from "./Animation/MotionWrapper";
 import TermsPopUp from "./Popup/PopUp";
 import { login } from "../Api";
