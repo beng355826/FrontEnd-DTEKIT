@@ -20,10 +20,8 @@ const InitialLogin = () => {
   const [passwordDiff, setPasswordDiff] = useState(false);
   const [emailAlreadyCreated, setEmailAlreadyCreated] = useState(false);
   const [otp, setOtp] = useState(0);
-  const [otpCorrect, setOtpCorrect] = useState(true)
+  const [otpCorrect, setOtpCorrect] = useState(true);
   const [step, setStepPage] = useState("request");
-
-  const [mode, setMode] = useState("signIn")
 
   // const setTimeOutSync = async (ms) => {
   //   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -47,12 +45,12 @@ const InitialLogin = () => {
     passwordDiff,
     otp,
     setOtpCorrect,
-    navigate
+    navigate,
   };
 
   useEffect(() => {
     if (localStorage.getItem("otpSent") === "true") {
-      setStepPage("otp")
+      setStepPage("otp");
     }
   }, []);
 
@@ -63,137 +61,188 @@ const InitialLogin = () => {
   return (
     <div key={step}>
       {/* key={} unmounts the component so when state changes it removes whats been typed */}
-            <Mail/>
-      <div className="sign-in-box">
+      <Mail />
 
-      
-
-      {step === "request" ? (
-        <div>
-            <div>
-            <button onClick={() => setStepPage("request")}>Sign Up</button>
-            </div>
-          
-          <input
-            className={
-              incorrectEmailFormat || emailAlreadyCreated ? "formatVal" : ""
-            }
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Email"
-            onChange={(e) => {
-              setUserEmail(e.target.value);
-            }}
-          />
-          <br />
-          <br />
+      <div className="auth-container"  
+      >
+        {step === "request" ? (
           <div>
-            <input
+            <div className="toggle-buttons">
+              <button onClick={() => setStepPage("request")}>Sign Up</button>
+              <button onClick={() => setStepPage("return")}>Log in</button>
+            </div>
+            <div>
+              <input
               className={
-                incorrectPasswordFormat || passwordDiff ? "formatVal" : ""
+                incorrectEmailFormat || emailAlreadyCreated ? "formatVal" : ""
               }
-              type="password"
-              placeholder="password"
-              autoComplete="off"
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Email"
               onChange={(e) => {
-                setUserPassword(e.target.value);
+                setUserEmail(e.target.value);
               }}
             />
             <br />
+            <br />
+              <input
+                className={
+                  incorrectPasswordFormat || passwordDiff ? "formatVal" : ""
+                }
+                type="password"
+                placeholder="password"
+                autoComplete="off"
+                onChange={(e) => {
+                  setUserPassword(e.target.value);
+                }}
+              />
+              <input
+                className={
+                  incorrectPasswordFormat || passwordDiff ? "formatVal" : ""
+                }
+                type="password"
+                placeholder="re-confirm password"
+                autoComplete="off"
+                onChange={(e) => {
+                  setUserReconfirmPassword(e.target.value);
+                }}
+              />
+              <p className="error-save-space">
+                {incorrectEmailFormat
+                  ? <b>Please input a valid email address</b>
+                  : ""}
+              </p>
+              <p className="error-save-space">
+                {incorrectPasswordFormat
+                  ? <b>Please input a password with at least 6 characters, a capital letter and 1 special character</b>
+                  : " "}
+              </p>
+              <p className="error-save-space"> 
+                {passwordDiff
+                  ? <b>Please ensure you enter the same password in both fields</b>
+                  : " "}
+                  
+              </p>
+              <p >
+                {emailAlreadyCreated
+                  ? "This email address has already been registered"
+                  : " "}
+              </p>
+            
+              <span>Remember Me?</span>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+            </div>
+            <div>
+              <span>
+                I agree to the
+                <a
+                  href="#"
+                  onClick={() => {
+                    setOpenTerms(true);
+                  }}
+                >
+                  {" "}
+                  t's and c's
+                </a>
+              </span>
+
+              <TermsPopUp openTerms={openTerms} setOpenTerms={setOpenTerms} />
+
+              <input
+                type="checkbox"
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
+              />
+              <br />
+              <p>
+                {agree
+                  ? "✅ Agreed to the terms"
+                  : "❌ Please agree to the terms "}
+              </p>
+              <button
+                onClick={() => {
+                  handleSubmit(formData);
+                }}
+                disabled={!agree}
+              >
+                Request log in
+              </button>
+              <br />
+            </div>
+          </div>
+        ) : step === "otp" ? (
+          <MotionWrapper>
+            <div>
+              <input
+                className={otpCorrect ? "" : "formatVal"}
+                id="otp"
+                type="text"
+                maxLength="8"
+                onChange={(e) => setOtp(e.target.value)}
+              />
+              <h1>Enter OTP</h1>
+              <p>{otpCorrect ? "" : "Your One time passcode is incorrect"}</p>
+            </div>
+          </MotionWrapper>
+        ) : step === "return" ? (
+          <div>
+            <div className="toggle-buttons">
+              <button onClick={() => setStepPage("request")}>Sign Up</button>
+              <button onClick={() => setStepPage("return")}>Log in</button>
+            </div>
             <input
-              className={
-                incorrectPasswordFormat || passwordDiff ? "formatVal" : ""
-              }
-              type="password"
-              placeholder="re-confirm password"
-              autoComplete="off"
+              type="email"
+              name="email"
+              placeholder="Email"
               onChange={(e) => {
-                setUserReconfirmPassword(e.target.value);
+                setEmail(e.target.function);
               }}
             />
-            <p>
-              {incorrectEmailFormat ? "Please input a valid email address" : ""}
-            </p>
-            <p>
-              {incorrectPasswordFormat
-                ? "Please input a password with at least 6 characters, a capital letter and 1 special character"
-                : ""}
-            </p>
-            <p>
-              {passwordDiff
-                ? "Please ensure you enter the same password in both fields"
-                : ""}
-            </p>
-            <p>
-              {emailAlreadyCreated
-                ? "This email address has already been registered"
-                : ""}
-            </p>
-            <br></br>
+            <br />
+        
+
+            <input
+              type="password"
+              name="password"
+              placeholder="password"
+              onChange={(e) => {}}
+            />
+            <br />
+            <br/>
+
             <span>Remember Me?</span>
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
+
+            
+            <br />
+            
+            
+            <button onClick={() => handleReturn(email, password, rememberMe)}>
+              Log in
+            </button>
+            <div>
+              <br />
+              <p>
+                {agree
+                  ? ""
+                  : ""}
+              </p>
+
+              <br />
+            </div>
           </div>
-          <span>
-            I agree to the
-            <a
-              href="#"
-              onClick={() => {
-                setOpenTerms(true);
-              }}
-            >
-              {" "}
-              terms and conditions
-            </a>
-          </span>
-
-          <TermsPopUp openTerms={openTerms} setOpenTerms={setOpenTerms} />
-
-          <input
-            type="checkbox"
-            checked={agree}
-            onChange={(e) => setAgree(e.target.checked)}
-          />
-          <br />
-          <p>
-            {agree
-              ? "✅ Agreed to the terms"
-              : "❌ Please agree to the terms before signing up"}
-          </p>
-          <button
-            onClick={() => {
-              handleSubmit(formData);
-            }}
-            disabled={!agree}
-          >
-            Request log in
-          </button>
-
-          <br />
-          <Link to="/returningUser">Returning user?</Link>
-        </div>
-      ) : step === "otp" ? (
-        <MotionWrapper>
-          <div>
-            <input
-              className={otpCorrect ? "" : "formatVal"}
-              id="otp"
-              type="text"
-              maxLength="8"
-              onChange={(e) => setOtp(e.target.value)}
-            />
-            <h1>Enter OTP</h1>
-            <p>{otpCorrect ? "" : "Your One time passcode is incorrect"}</p>
-          </div>
-        </MotionWrapper>
-      ) : null}
-      {isLoading === true ? <div className="loader"></div> : null}
-    </div>
-
+        ) : null}
+        {isLoading === true ? <div className="loader"></div> : null}
+      </div>
     </div>
   );
 };
