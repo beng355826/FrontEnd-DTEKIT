@@ -1,6 +1,6 @@
 import { createUser } from "../Api";
 
-export const handleSubmit = async ({    
+export const handleCreateUserSubmit = async ({    
     userEmail = null,
     userPassword = null,
     userReconfirmPassword = null,
@@ -20,7 +20,8 @@ setIncorrectPasswordFormat(null)
 setEmailAlreadyCreated(false)
 setPasswordDiff(false)
 
-setIsLoading(true)    
+setIsLoading(true)
+await setTimeOutSync(750) // Take this out later    
 const isEmailValid = (isEmail) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(isEmail)
 const isPasswordValid = (isPassword) => /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$/.test(isPassword)
 
@@ -43,7 +44,7 @@ const finalCheck = Object.values(check)
 if(finalCheck.every((value) => value === true)) {
     const response = await createUser(userEmail, userPassword, rememberMe)
     if(response.message === 'Request failed with status code 400') {
-        
+        console.log(response);
         await setTimeOutSync(750)
         setIsLoading(false)
         return setEmailAlreadyCreated(true)

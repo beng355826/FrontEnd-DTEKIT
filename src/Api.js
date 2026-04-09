@@ -40,7 +40,7 @@ export const authoriseUser = async (oneTimePasscode) => {
 };
 
 export const login = async (email,password,rememberMe) => {
-
+console.log(email, password, rememberMe);
   try {
     const response = await axios.patch(
       "api/validate/login",
@@ -51,9 +51,12 @@ export const login = async (email,password,rememberMe) => {
       },{},
       { withCredentials: true }          // not yet sure what format it will be. Will know when developing returning user journey
     )
-    return response
+
+    
+    return response.data
   } catch (error) {
-    console.log(error);
+    return error.response.status
+    
   }
 
 } 
